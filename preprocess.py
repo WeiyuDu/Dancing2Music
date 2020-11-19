@@ -25,8 +25,8 @@ def preprocess(audio_filename, output_filename):
     error = os.system(
         'ffmpeg-normalize -f {}'.format(audio_filename_formatted))
     if error:
-        raise StandardError('ffmpeg-normalize doesn\'t exist')
-
+        #raise StandardError('ffmpeg-normalize doesn\'t exist')
+        print("standard error")
     data = wavfile.read(audio_filename_formatted)
     mfcc_inst = MFCC()
     features = mfcc_inst.sig2s2mfc_energy(data[1])

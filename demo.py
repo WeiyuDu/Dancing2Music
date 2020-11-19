@@ -80,7 +80,7 @@ if __name__ == "__main__":
 	aud = np.load('style.npy')
 	os.remove('beats.npy')
 	os.remove('style.npy')
-	shutil.rmtree('normalized')
+	#shutil.rmtree('normalized')
 
 	#### Pretrain network from Decomp
 	initp_enc, stdp_dec, movement_enc = loadDecompModel(args)
@@ -117,36 +117,36 @@ if __name__ == "__main__":
 	#initpose = (initpose-mean_pose)/std_pose
 
 	for j in range(aud.shape[0]):
-	aud[j] = (aud[j]-mean_aud)/std_aud
+		aud[j] = (aud[j]-mean_aud)/std_aud
 
 	total_t = int(length/32+1)
 	final_stdpSeq = np.zeros((total_t*3*32, 14, 2))
 	initpose, aud = torch.Tensor(initpose).cuda(), torch.Tensor(aud).cuda()
 	initpose, aud = initpose.view(1, initpose.shape[0]), aud.view(1, aud.shape[0], aud.shape[1])
 	for t in range(total_t):
-	print('process {}/{}'.format(t, total_t))
-	fake_stdpSeq = trainer.test_final(initpose, aud, 3, thr)
-	while True:
+		print('process {}/{}'.format(t, total_t))
 		fake_stdpSeq = trainer.test_final(initpose, aud, 3, thr)
-		if not fake_stdpSeq is None:
-		break
-	initpose = fake_stdpSeq[2,-1]
-	initpose = torch.Tensor(initpose).cuda()
-	initpose = initpose.view(1,-1)
-	fake_stdpSeq = fake_stdpSeq.squeeze()
-	for j in range(fake_stdpSeq.shape[0]):
-		for k in range(fake_stdpSeq.shape[1]):
-		fake_stdpSeq[j,k] = fake_stdpSeq[j,k]*std_pose + mean_pose
-	fake_stdpSeq = np.resize(fake_stdpSeq, (fake_stdpSeq.shape[0],32, 14, 2))
-	for j in range(3):
-		final_stdpSeq[96*t+32*j:96*t+32*(j+1)] = fake_stdpSeq[j]
+		while True:
+			fake_stdpSeq = trainer.test_final(initpose, aud, 3, thr)
+			if not fake_stdpSeq is None:
+			break
+		initpose = fake_stdpSeq[2,-1]
+		initpose = torch.Tensor(initpose).cuda()
+		initpose = initpose.view(1,-1)
+		fake_stdpSeq = fake_stdpSeq.squeeze()
+		for j in range(fake_stdpSeq.shape[0]):
+			for k in range(fake_stdpSeq.shape[1]):
+			fake_stdpSeq[j,k] = fake_stdpSeq[j,k]*std_pose + mean_pose
+		fake_stdpSeq = np.resize(fake_stdpSeq, (fake_stdpSeq.shape[0],32, 14, 2))
+		for j in range(3):
+			final_stdpSeq[96*t+32*j:96*t+32*(j+1)] = fake_stdpSeq[j]
 
 	if args.modulate:
-	final_stdpSeq = modulate.modulate(final_stdpSeq, beats, length)
+		final_stdpSeq = modulate.modulate(final_stdpSeq, beats, length)
 
 	out_dir = args.out_dir
 	if not os.path.exists(out_dir):
-	os.mkdir(out_dir)
+		os.mkdir(out_dir)
 	utils.vis(final_stdpSeq, out_dir)
 	sp.call('ffmpeg -r 15  -i {}/frame%03d.png -i {} -c:v libx264 -pix_fmt yuv420p  -crf 23 -r 30  -y -strict -2  {}'.format(out_dir, args.aud_path, args.out_file), shell=True)
 
