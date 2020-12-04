@@ -137,18 +137,32 @@ if __name__ == "__main__":
 		while True:
 			fake_stdpSeq = trainer.test_final(initpose, aud, 3, thr)
 			if not fake_stdpSeq is None:
+<<<<<<< HEAD
 				break
 		initpose = fake_stdpSeq[2,-1]
 		initpose = torch.Tensor(initpose).to(args.device)
+=======
+			break
+		initpose = fake_stdpSeq[2,-1]
+		initpose = torch.Tensor(initpose).cuda()
+>>>>>>> 0a0fac5fcbee0085c4a12f7f87754c143d21592a
 		initpose = initpose.view(1,-1)
 		fake_stdpSeq = fake_stdpSeq.squeeze()
 		for j in range(fake_stdpSeq.shape[0]):
 			for k in range(fake_stdpSeq.shape[1]):
+<<<<<<< HEAD
 				fake_stdpSeq[j,k] = fake_stdpSeq[j,k]*std_pose + mean_pose
 		fake_stdpSeq = np.resize(fake_stdpSeq, (fake_stdpSeq.shape[0],32, 14, 2))
 		for j in range(3):
 			final_stdpSeq[96*t+32*j:96*t+32*(j+1)] = fake_stdpSeq[j]
 	end.record()
+=======
+			fake_stdpSeq[j,k] = fake_stdpSeq[j,k]*std_pose + mean_pose
+		fake_stdpSeq = np.resize(fake_stdpSeq, (fake_stdpSeq.shape[0],32, 14, 2))
+		for j in range(3):
+			final_stdpSeq[96*t+32*j:96*t+32*(j+1)] = fake_stdpSeq[j]
+
+>>>>>>> 0a0fac5fcbee0085c4a12f7f87754c143d21592a
 	if args.modulate:
 		final_stdpSeq = modulate.modulate(final_stdpSeq, beats, length)
 
