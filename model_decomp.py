@@ -258,11 +258,11 @@ class Trainer_Decomp(object):
 
 	def cuda(self):
 		
-		self.initp_enc.to(self.args.device)#.cuda()
-		self.initp_dec.to(self.args.device)#.cuda()
-		self.movement_enc.to(self.args.device)#.cuda()
-		self.stdp_dec.to(self.args.device)#cuda()
-		self.l1_criterion.to(self.args.device)#cuda()
+		self.initp_enc.to(self.args.device)
+		self.initp_dec.to(self.args.device)
+		self.movement_enc.to(self.args.device)
+		self.stdp_dec.to(self.args.device)
+		self.l1_criterion.to(self.args.device)
 
 	def train(self, ep=0, it=0):
 		self.cuda()
@@ -282,8 +282,15 @@ class Trainer_Decomp(object):
 				stdpose, stdpose2  = stdpose.to(self.args.device).detach(), stdpose2.to(self.args.device).detach()
 				#stdpose.cuda().detach(), stdpose2.cuda().detach()
 
+				start = torch.cuda.Event(enable_timing=True)
+				end = torch.cuda.Event(enable_timing=True)
+				start.record()
+
 				self.forward(stdpose, stdpose2)
 				self.update()
+
+				end.record()
+
 				self.logs['l_kl_zinit'] += self.loss_kl_z_init.data
 				self.logs['l_kl_zmovement'] += self.loss_kl_z_movement.data
 				self.logs['l_l1_initp'] += self.loss_l1_initp.data
@@ -295,6 +302,9 @@ class Trainer_Decomp(object):
 				print('Epoch:{:3} Iter{}/{}\tl_l1_initp {:.3f}\tl_l1_stdp {:.3f}\tl_l1_cross_stdp {:.3f}\tl_dist_zmove {:.3f}\tl_kl_zinit {:.3f}\t l_kl_zmove {:.3f}'.format(
 							epoch, i, len(self.data_loader), self.loss_l1_initp, self.loss_l1_stdp, self.loss_l1_cross_stdp, self.loss_dist_z_movement, self.loss_kl_z_init, self.loss_kl_z_movement))
 
+				torch.cuda.synchronize()
+				print('time elapsed: {} milliseconds'.format(start.elapsed_time(end)))
+				
 				it += 1
 				if it % self.log_interval == 0:
 					for tag, value in self.logs.items():

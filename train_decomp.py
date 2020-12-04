@@ -22,9 +22,11 @@ def getDecompNetworks(args):
   initp_enc = InitPose_Enc(pose_size=args.pose_size, dim_z_init=args.dim_z_init)
   initp_dec = InitPose_Dec(pose_size=args.pose_size, dim_z_init=args.dim_z_init)
   movement_enc = Movement_Enc(pose_size=args.pose_size, dim_z_movement=args.dim_z_movement, length=args.stdp_length,
-                              hidden_size=args.movement_enc_hidden_size, num_layers=args.movement_enc_num_layers, bidirection=(args.movement_enc_bidirection==1))
+                              hidden_size=args.movement_enc_hidden_size, num_layers=args.movement_enc_num_layers, bidirection=(args.movement_enc_bidirection==1),
+                              model=args.model)
   stdp_dec = StandardPose_Dec(pose_size=args.pose_size, dim_z_movement=args.dim_z_movement, dim_z_init=args.dim_z_init, length=args.stdp_length,
-                             hidden_size=args.stdp_dec_hidden_size, num_layers=args.stdp_dec_num_layers)
+                             hidden_size=args.stdp_dec_hidden_size, num_layers=args.stdp_dec_num_layers,
+                             model=args.model)
   return initp_enc, initp_dec, movement_enc, stdp_dec
 
 if __name__ == "__main__":

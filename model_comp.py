@@ -17,12 +17,12 @@ import torch.optim as optim
 from torch.nn.utils import clip_grad_norm_
 
 from utils import Logger
-
+'''
 if torch.cuda.is_available():
 	T = torch.cuda
 else:
 	T = torch
-
+'''
 class Trainer_Comp(object):
 	def __init__(self, data_loader, dance_enc, dance_dec, danceAud_dis, 
 	movement_enc, initp_enc, stdp_dec, aud_enc, audstyle_enc, 
@@ -62,7 +62,9 @@ class Trainer_Comp(object):
 		self.latent_dropout = nn.Dropout(p=args.latent_dropout)
 		self.l1_criterion = torch.nn.L1Loss()
 		self.gan_criterion = nn.BCEWithLogitsLoss()
-		self.mse_criterion = nn.MSELoss().cuda()
+		self.mse_criterion = nn.MSELoss().to(self.args.device)#.cuda()
+
+		print('trainer initialized')
 
 	def init_logs(self):
 		return {'l_kl_zdance':0, 'l_kl_zmovement':0, 'l_kl_fake_zdance':0, 'l_kl_fake_zmovement':0,
@@ -73,16 +75,16 @@ class Trainer_Comp(object):
 				}
 
 	def get_z_random(self, batchSize, nz, random_type='gauss'):
-		z = torch.randn(batchSize, nz).cuda()
+		z = torch.randn(batchSize, nz, requires_grad=False).to(self.args.device)#.cuda()
 		return z
 
-	@staticmethod
-	def ones_like(tensor, val=1.):
-		return T.FloatTensor(tensor.size()).fill_(val)
+	#@staticmethod
+	def ones_like(self, tensor, val=1.):
+		return torch.FloatTensor(tensor.size()).fill_(val).to(self.args.device)
 
-	@staticmethod
-	def zeros_like(tensor, val=0.):
-		return T.FloatTensor(tensor.size()).fill_(val)
+	#@staticmethod
+	def zeros_like(self, tensor, val=0.):
+		return torch.FloatTensor(tensor.size()).fill_(val).to(self.args.device)
 	def kld_coef(self, i):
 		return float(1/(1+np.exp(-0.0005*(i-15000))))
 
@@ -149,7 +151,6 @@ class Trainer_Comp(object):
 
 		ones = self.ones_like(real_labels)
 		zeros = self.zeros_like(fake_labels)
-
 		self.loss_dis_true = self.gan_criterion(real_labels, ones)
 		self.loss_dis_fake = self.gan_criterion(fake_labels, zeros)
 		self.loss_dis = (self.loss_dis_true + self.loss_dis_fake)*self.args.lambda_gan
@@ -163,7 +164,7 @@ class Trainer_Comp(object):
 
 		self.loss_zdis_true = self.gan_criterion(real_labels, ones)
 		self.loss_zdis_fake = self.gan_criterion(fake_labels, zeros)
-		self.loss_dis += (self.loss_zdis_true + self.loss_zdis_fake)*self.args.lambda_gan
+		self.loss_dis = self.loss_dis + (self.loss_zdis_true + self.loss_zdis_fake)*self.args.lambda_gan
 
 
 	def backward_danceED(self):
@@ -194,7 +195,7 @@ class Trainer_Comp(object):
 		fake_dance = torch.cat((self.fake_z_dance_mu, self.fake_z_dance_logvar), 1)
 		fake_labels, _ = self.zdance_dis(fake_dance, self.aud)
 		ones = self.ones_like(fake_labels)
-		self.loss_gen += self.gan_criterion(fake_labels, ones) * self.args.lambda_gan
+		self.loss_gen = self.loss_gen + self.gan_criterion(fake_labels, ones) * self.args.lambda_gan
 
 		self.loss = self.loss_kl_z_movement + self.loss_kl_z_dance + self.loss_l1_z_movement_mu + self.loss_l1_z_movement_logvar + self.loss_l1_stdpSeq + self.loss_gen
 
@@ -204,6 +205,7 @@ class Trainer_Comp(object):
 		self.loss_info_real = self.mse_criterion(real_pred, self.aud_style)
 		self.loss_info_fake = self.mse_criterion(fake_pred, self.aud_style)
 		self.loss_info = self.loss_info_real + self.loss_info_fake
+		self.loss += self.loss_info
 
 	def zero_grad(self, opt_list):
 		for opt in opt_list:
@@ -218,23 +220,31 @@ class Trainer_Comp(object):
 			opt.step()
 
 	def update(self):
+		
 		self.zero_grad([self.opt_danceAud_dis, self.opt_zdance_dis])
 		self.backward_D()
 		self.loss_dis.backward(retain_graph=True)
 		self.clip_norm([self.danceAud_dis, self.zdance_dis])
 		self.step([self.opt_danceAud_dis, self.opt_zdance_dis])
-
+		'''
 		self.zero_grad([self.opt_dance_enc, self.opt_dance_dec, self.opt_audstyle_enc, self.opt_stdp_dec])
 		self.backward_danceED()
 		self.loss.backward(retain_graph=True)
 		self.clip_norm([self.dance_enc, self.dance_dec, self.audstyle_enc, self.stdp_dec])
 		self.step([self.opt_dance_enc, self.opt_dance_dec, self.opt_audstyle_enc, self.opt_stdp_dec])
-
+		
 		self.zero_grad([self.opt_dance_enc, self.opt_audstyle_enc, self.opt_dance_reg, self.opt_stdp_dec])
 		self.backward_info_ondance()
-		self.loss_info.backward()
+		self.loss_info.backward(retain_graph=True)
 		self.clip_norm([self.dance_enc, self.audstyle_enc, self.dance_reg, self.stdp_dec])
 		self.step([self.opt_dance_enc, self.opt_audstyle_enc, self.opt_dance_reg, self.opt_stdp_dec])
+		'''
+		self.zero_grad([self.opt_dance_enc, self.opt_dance_dec, self.opt_audstyle_enc, self.opt_stdp_dec, self.opt_dance_reg, self.opt_movement_enc])
+		self.backward_danceED()
+		self.backward_info_ondance()
+		self.loss.backward()
+		self.clip_norm([self.dance_enc, self.dance_dec, self.audstyle_enc, self.stdp_dec, self.dance_reg, self.movement_enc])
+		self.step([self.opt_dance_enc, self.opt_dance_dec, self.opt_audstyle_enc, self.opt_stdp_dec, self.opt_dance_reg, self.opt_movement_enc])
 
 	def test_final(self, initpose, aud, n, thr=0):
 		self.cuda()
@@ -324,6 +334,7 @@ class Trainer_Comp(object):
 		return
 
 	def cuda(self):
+		'''
 		if self.train:
 			self.dance_reg.cuda()
 			self.danceAud_dis.cuda()
@@ -336,9 +347,25 @@ class Trainer_Comp(object):
 		self.aud_enc.cuda()
 		self.audstyle_enc.cuda()
 		self.gan_criterion.cuda()
+		'''
+		if self.train:
+			self.dance_reg.to(self.args.device)
+			self.danceAud_dis.to(self.args.device)
+			self.zdance_dis.to(self.args.device)
+		self.stdp_dec.to(self.args.device)
+		self.initp_enc.to(self.args.device)
+		self.movement_enc.to(self.args.device)
+		self.dance_enc.to(self.args.device)
+		self.dance_dec.to(self.args.device)
+		self.aud_enc.to(self.args.device)
+		self.audstyle_enc.to(self.args.device)
+		self.gan_criterion.to(self.args.device)
+		
+		return
 
-	def train(self, ep=0, it=0):
+	def train_network(self, ep=0, it=0):
 		self.cuda()
+		torch.autograd.set_detect_anomaly(True)
 		for epoch in range(ep, self.args.num_epochs):
 			self.movement_enc.train()
 			self.stdp_dec.train()
@@ -352,13 +379,28 @@ class Trainer_Comp(object):
 			self.aud_enc.eval()
 			stdp_recon = 0
 
-			for i, (stdpSeq, aud) in enumerate(self.data_loader):
-				stdpSeq, aud = stdpSeq.cuda().detach(), aud.cuda().detach()
+			for i, batch in enumerate(self.data_loader):
+				#start = torch.cuda.Event(enable_timing=True)
+				#end = torch.cuda.Event(enable_timing=True)
+				#start.record()
+
+				(stdpSeq, aud) = batch
+				stdpSeq, aud = stdpSeq.to(self.args.device).detach(), aud.to(self.args.device).detach()#stdpSeq.cuda().detach(), aud.cuda().detach()
+				
+				#end.record()
+
 				stdpSeq = stdpSeq.view(stdpSeq.shape[0]*stdpSeq.shape[1], stdpSeq.shape[2], stdpSeq.shape[3])
 				aud_style = self.aud_enc.get_style(aud).detach()
 
+				#start = torch.cuda.Event(enable_timing=True)
+				#end = torch.cuda.Event(enable_timing=True)
+				#start.record()
+
 				self.forward(stdpSeq, aud.shape[0], aud_style, aud)
 				self.update()
+
+				#end.record()
+
 				self.logs['l_kl_zmovement'] += self.loss_kl_z_movement.data
 				self.logs['l_kl_zdance'] += self.loss_kl_z_dance.data
 				self.logs['l_l1_zmovement_mu'] += self.loss_l1_z_movement_mu.data
@@ -377,6 +419,9 @@ class Trainer_Comp(object):
 				print('Epoch:{:3} Iter{}/{}\tl_l1_zmovement mu{:.3f} logvar{:.3f}\tl_l1_stdpSeq {:.3f}\tl_kl_dance {:.3f}\tl_kl_movement {:.3f}\n'.format(epoch, i, len(self.data_loader),
 						self.loss_l1_z_movement_mu, self.loss_l1_z_movement_logvar, self.loss_l1_stdpSeq, self.loss_kl_z_dance, self.loss_kl_z_movement) +
 						 '\t\t\tl_kl_f_dance {:.3f}\tl_dis {:.3f} {:.3f}\tl_gen {:.3f}'.format(self.loss_kl_fake_z_dance, self.loss_dis_true, self.loss_dis_fake, self.loss_gen))
+
+				torch.cuda.synchronize()
+				print('time elapsed: {} milliseconds'.format(start.elapsed_time(end)))
 
 				it += 1
 				if it % self.log_interval == 0:

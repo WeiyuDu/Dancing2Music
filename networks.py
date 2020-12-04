@@ -64,7 +64,7 @@ class InitPose_Dec(nn.Module):
 		return self.dec(z_init)
 
 class Movement_Enc(nn.Module):
-	def __init__(self, pose_size, dim_z_movement, length, hidden_size, num_layers, bidirection=False):
+	def __init__(self, pose_size, dim_z_movement, length, hidden_size, num_layers, bidirection=False, model='GRU'):
 		super(Movement_Enc, self).__init__()
 		self.hidden_size = hidden_size
 		self.bidirection = bidirection
@@ -72,7 +72,11 @@ class Movement_Enc(nn.Module):
 			self.num_dir = 2
 		else:
 			self.num_dir = 1
-		self.recurrent = nn.GRU(pose_size, hidden_size, num_layers=num_layers, batch_first=True, bidirectional=bidirection)
+		self.model_type = model
+		if model == 'GRU':
+			self.recurrent = nn.GRU(pose_size, hidden_size, num_layers=num_layers, batch_first=True, bidirectional=bidirection)
+		elif model == 'LSTM':
+			self.recurrent = nn.LSTM(pose_size, hidden_size, num_layers=num_layers, batch_first=True, bidirectional=bidirection)
 		self.init_h = nn.Parameter(torch.randn(num_layers*self.num_dir, 1, hidden_size).type(T.FloatTensor), requires_grad=True)
 		if bidirection:
 			self.mean = nn.Sequential(
@@ -98,7 +102,11 @@ class Movement_Enc(nn.Module):
 	def forward(self, poses):
 		num_samples = poses.shape[0]
 		h_t = [self.init_h.repeat(1, num_samples, 1)]
-		output, hidden = self.recurrent(poses, h_t[0])
+		if self.model_type == 'GRU':
+			output, hidden = self.recurrent(poses, h_t[0])
+		elif self.model_type == 'LSTM':
+			c_init = torch.zeros_like(h_t[0]).to(h_t[0].device)
+			output, _ = self.recurrent(poses, (h_t[0], c_init))
 		if self.bidirection:
 			output = torch.cat((output[:,-1,:self.hidden_size], output[:,0,self.hidden_size:]), 1)
 		else:
@@ -118,7 +126,7 @@ class Movement_Enc(nn.Module):
 		return output
 
 class StandardPose_Dec(nn.Module):
-	def __init__(self, pose_size, dim_z_init, dim_z_movement, length, hidden_size, num_layers):
+	def __init__(self, pose_size, dim_z_init, dim_z_movement, length, hidden_size, num_layers, model='GRU'):
 		super(StandardPose_Dec, self).__init__()
 		self.length = length
 		self.pose_size = pose_size
@@ -136,7 +144,12 @@ class StandardPose_Dec(nn.Module):
 		self.z2init = nn.Sequential(
 			nn.Linear(dim_z_init+dim_z_movement, num_layers*hidden_size)
 		)
-		self.recurrent = nn.GRU(dim_z_movement, hidden_size, num_layers=num_layers, batch_first=True)
+		self.model_type = model
+		if model == 'GRU':
+			self.recurrent = nn.GRU(dim_z_movement, hidden_size, num_layers=num_layers, batch_first=True)
+		elif model == 'LSTM':
+			self.recurrent = nn.LSTM(dim_z_movement, hidden_size, num_layers=num_layers, batch_first=True)
+		
 		self.pose_g = nn.Sequential(
 			nn.Linear(hidden_size, hidden_size),
 			nn.LayerNorm(hidden_size),
@@ -149,7 +162,11 @@ class StandardPose_Dec(nn.Module):
 		#h_init = self.z2init(z_movement)
 		h_init = h_init.view(self.num_layers, h_init.size(0), self.hidden_size)
 		z_movements = z_movement.view(z_movement.size(0),1,z_movement.size(1)).repeat(1, self.length, 1)
-		z_m_t, _ = self.recurrent(z_movements, h_init)
+		if self.model_type == 'GRU':
+			z_m_t, _ = self.recurrent(z_movements, h_init)
+		elif self.model_type == 'LSTM':
+			c_init = torch.zeros_like(h_init).to(h_init.device)
+			z_m_t, _ = self.recurrent(z_movements, (h_init, c_init))
 		z_m = z_m_t.contiguous().view(-1, self.hidden_size)
 		poses = self.pose_g(z_m)
 		poses = poses.view(z_movement.shape[0], self.length, self.pose_size)
@@ -183,7 +200,7 @@ class StandardPose_Dis(nn.Module):
 ##########
 ###########################################################
 class Dance_Enc(nn.Module):
-	def __init__(self, dim_z_movement, dim_z_dance, hidden_size, num_layers, bidirection=False):
+	def __init__(self, dim_z_movement, dim_z_dance, hidden_size, num_layers, bidirection=False, model='GRU'):
 		super(Dance_Enc, self).__init__()
 		self.hidden_size = hidden_size
 		self.bidirection = bidirection
@@ -191,7 +208,12 @@ class Dance_Enc(nn.Module):
 			self.num_dir = 2
 		else:
 			self.num_dir = 1
-		self.recurrent = nn.GRU(2*dim_z_movement, hidden_size, num_layers=num_layers, batch_first=True, bidirectional=bidirection)
+		self.model_type = model
+		if model == 'GRU':
+			self.recurrent = nn.GRU(2*dim_z_movement, hidden_size, num_layers=num_layers, batch_first=True, bidirectional=bidirection)
+		elif model == 'LSTM':
+			self.recurrent = nn.LSTM(2*dim_z_movement, hidden_size, num_layers=num_layers, batch_first=True, bidirectional=bidirection)
+		
 		self.init_h = nn.Parameter(torch.randn(num_layers*self.num_dir, 1, hidden_size).type(T.FloatTensor), requires_grad=True)
 		if bidirection:
 			self.mean = nn.Sequential(
@@ -211,7 +233,11 @@ class Dance_Enc(nn.Module):
 		movements = torch.cat((movements_mean, movements_std),2)
 		num_samples = movements.shape[0]
 		h_t = [self.init_h.repeat(1, num_samples, 1)]
-		output, hidden = self.recurrent(movements, h_t[0])
+		if self.model_type == 'GRU':
+			output, hidden = self.recurrent(movements, h_t[0])
+		elif self.model_type == 'LSTM':
+			c_init = torch.zeros_like(h_t[0]).to(h_t[0].device)
+			output, hidden = self.recurrent(movements, (h_t[0], c_init))
 		if self.bidirection:
 			output = torch.cat((output[:,-1,:self.hidden_size], output[:,0,self.hidden_size:]), 1)
 		else:
@@ -219,7 +245,7 @@ class Dance_Enc(nn.Module):
 		return self.mean(output), self.std(output)
 
 class Dance_Dec(nn.Module):
-	def __init__(self, dim_z_dance, dim_z_movement, hidden_size, num_layers):
+	def __init__(self, dim_z_dance, dim_z_movement, hidden_size, num_layers, model='GRU'):
 		super(Dance_Dec, self).__init__()
 		#self.length = length
 		self.num_layers = num_layers
@@ -237,7 +263,12 @@ class Dance_Dec(nn.Module):
 		self.z2init = nn.Sequential(
 			nn.Linear(dim_z_dance, num_layers*hidden_size)
 		)
-		self.recurrent = nn.GRU(dim_z_dance, hidden_size, num_layers=num_layers, batch_first=True)
+		self.model_type = model
+		if model == 'GRU':
+			self.recurrent = nn.GRU(dim_z_dance, hidden_size, num_layers=num_layers, batch_first=True)
+		else:
+			self.recurrent = nn.LSTM(dim_z_dance, hidden_size, num_layers=num_layers, batch_first=True)
+		
 		self.movement_g = nn.Sequential(
 			nn.Linear(hidden_size, hidden_size),
 			nn.LayerNorm(hidden_size),
@@ -255,7 +286,11 @@ class Dance_Dec(nn.Module):
 		h_init = self.z2init(z_dance)
 		h_init = h_init.view(self.num_layers, h_init.size(0), self.hidden_size)
 		z_dance = z_dance.view(z_dance.size(0),1,z_dance.size(1)).repeat(1, length, 1)
-		z_d_t, _ = self.recurrent(z_dance, h_init)
+		if self.model_type == 'GRU':
+			z_d_t, _ = self.recurrent(z_dance, h_init)
+		elif self.model_type == 'LSTM':
+			c_init = torch.zeros_like(h_init).to(h_init.device)
+			z_d_t, _ = self.recurrent(z_dance, (h_init, c_init))
 		z_d = z_d_t.contiguous().view(-1, self.hidden_size)
 		z_movement = self.movement_g(z_d)
 		z_movement_mean, z_movement_std = self.mean(z_movement), self.std(z_movement)
@@ -399,7 +434,7 @@ class Dance2Style(nn.Module):
 ##########
 ###########################################################
 class AudioClassifier_rnn(nn.Module):
-	def __init__(self, dim_z_motion, hidden_size, pose_size, cls, num_layers=1, h_init=2):
+	def __init__(self, dim_z_motion, hidden_size, pose_size, cls, num_layers=1, h_init=2, model='GRU'):
 		super(AudioClassifier_rnn, self).__init__()
 		self.dim_z_motion = dim_z_motion
 		self.hidden_size = hidden_size
@@ -408,7 +443,12 @@ class AudioClassifier_rnn(nn.Module):
 		self.num_layers = num_layers
 
 		self.init_h = nn.Parameter(torch.randn(1, 1, self.hidden_size).type(T.FloatTensor), requires_grad=True)
-		self.recurrent = nn.GRU(pose_size, hidden_size, num_layers=num_layers, batch_first=True)
+		self.model_type = model
+		if model == 'GRU':
+			self.recurrent = nn.GRU(pose_size, hidden_size, num_layers=num_layers, batch_first=True)
+		elif model == 'LSTM':
+			self.recurrent = nn.LSTM(pose_size, hidden_size, num_layers=num_layers, batch_first=True)
+		
 		self.classifier = nn.Sequential(
 			#nn.Dropout(p=0.2),
 			nn.Linear(hidden_size, hidden_size),
@@ -417,7 +457,12 @@ class AudioClassifier_rnn(nn.Module):
 			nn.Linear(hidden_size, cls)
 		)
 	def forward(self, poses):
-		hidden, _ = self.recurrent(poses, self.init_h.repeat(1, poses.shape[0], 1))
+		if self.model_type == 'GRU':
+			hidden, _ = self.recurrent(poses, self.init_h.repeat(1, poses.shape[0], 1))
+		elif self.model_type == 'LSTM':
+			h_init = self.init_h.repeat(1, poses.shape[0], 1)
+			c_init = torch.zeros_like(h_init).to(h_init.device)
+			hidden, _ = self.recurrent(poses, (h_init, c_init))
 		last_hidden = hidden[:,-1,:]
 		cls = self.classifier(last_hidden)
 		return cls
@@ -428,7 +473,7 @@ class AudioClassifier_rnn(nn.Module):
 
 
 class Audstyle_Enc(nn.Module):
-	def __init__(self, aud_size, dim_z, dim_noise=30):
+	def __init__(self, aud_size, dim_z, device, dim_noise=30):
 		super(Audstyle_Enc, self).__init__()
 		self.dim_noise = dim_noise
 		nf = 64
@@ -447,8 +492,9 @@ class Audstyle_Enc(nn.Module):
 		self.std = nn.Sequential(
 			nn.Linear(nf*2,dim_z),
 		)
+		self.device = device
 	def forward(self, aud):
-		noise = torch.randn(aud.shape[0], self.dim_noise).cuda()
+		noise = torch.randn(aud.shape[0], self.dim_noise, requires_grad=False).to(self.device)#.cuda()
 		y = torch.cat((aud, noise), 1)
 		enc = self.enc(y)
 		return self.mean(enc), self.std(enc)
