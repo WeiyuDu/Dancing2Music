@@ -108,7 +108,7 @@ class PoseDataset(torch.utils.data.Dataset):
 
 
 class MovementAudDataset(torch.utils.data.Dataset):
-	def __init__(self, data_dir):
+	def __init__(self, data_dir, category='full'):
 		self.data_dir = data_dir
 		z3_fname = '{}/unitList/zumba_unitseq3.txt'.format(data_dir)
 		b3_fname = '{}/unitList/ballet_unitseq3.txt'.format(data_dir)
@@ -140,29 +140,80 @@ class MovementAudDataset(torch.utils.data.Dataset):
 		with open(h4_fname, 'r') as f:
 			for line in f:
 				self.h4_data.append([s for s in line.strip().split(' ')])
-		self.data_3 = [self.z3_data, self.b3_data, self.h3_data]
-		self.data_4 = [self.z4_data, self.b4_data, self.h4_data]
-
+		# MODIFIED
+		self.cate = category
 		z_data_root = 'zumba/'
 		b_data_root = 'ballet/'
 		h_data_root = 'hiphop/'
-		self.data_root = [z_data_root, b_data_root, h_data_root ]
+		if category == 'full':
+			self.data_3 = [self.z3_data, self.b3_data, self.h3_data]
+			self.data_4 = [self.z4_data, self.b4_data, self.h4_data]
+			self.data_root = [z_data_root, b_data_root, h_data_root ]
+		elif category == 'zumba':
+			self.data_3 = [self.z3_data]
+			self.data_4 = [self.z4_data]
+			self.data_root = [z_data_root]
+		elif category == 'ballet':
+			self.data_3 = [self.b3_data]
+			self.data_4 = [self.b4_data]
+			self.data_root = [b_data_root]
+		elif category == 'hiphop':
+			self.data_3 = [self.h3_data]
+			self.data_4 = [self.h4_data]
+			self.data_root = [h_data_root]
+
 		self.mean_pose=np.load(data_dir+'/stats/all_onbeat_mean.npy')
 		self.std_pose=np.load(data_dir+'/stats/all_onbeat_std.npy')
 		self.mean_aud=np.load(data_dir+'/stats/all_aud_mean.npy')
 		self.std_aud=np.load(data_dir+'/stats/all_aud_std.npy')
 
 	def __getitem__(self, index):
-		cls = random.randint(0,2)
-		cls = random.randint(0,1)
-		isthree = random.randint(0,1)
 
-		if isthree == 0:
-			index = random.randint(0, len(self.data_4[cls])-1)
-			path = self.data_4[cls][index][0]
-		else:
-			index = random.randint(0, len(self.data_3[cls])-1)
-			path = self.data_3[cls][index][0]
+		if self.cate == 'full':
+			cls = random.randint(0,2)
+			cls = random.randint(0,1)
+			isthree = random.randint(0,1)
+
+			if isthree == 0:
+				index = random.randint(0, len(self.data_4[cls])-1)
+				path = self.data_4[cls][index][0]
+			else:
+				index = random.randint(0, len(self.data_3[cls])-1)
+				path = self.data_3[cls][index][0]
+		elif self.cate == 'ballet':
+			cls = 0
+			isthree = 1
+			'''
+			if index >= len(self.b3_data):
+				index = index - len(self.b3_data)
+				path = self.data_4[0][index][0]
+			else:
+				path = self.data_3[0][index][0]
+			'''
+			path = self.data_4[0][index][0]
+		elif self.cate == 'zumba':
+			cls = 0
+			isthree = 1
+			'''
+			if index >= len(self.z3_data):
+				index = index - len(self.z3_data)
+				path = self.data_4[0][index][0]
+			else:
+				path = self.data_3[0][index][0]
+			'''
+			path = self.data_4[0][index][0]
+		elif self.cate == 'hiphop':
+			cls = 0
+			isthree = 1
+			'''
+			if index >= len(self.h3_data):
+				index = index - len(self.h3_data)
+				path = self.data_4[0][index][0]
+			else:
+				path = self.data_3[0][index][0]
+			'''
+			path = self.data_4[0][index][0]
+
 		path = os.path.join(self.data_dir, path[5:])
 		stdpSeq = np.load(path)
 		vid, cid = path.split('/')[-4], path.split('/')[-3]
@@ -183,13 +234,24 @@ class MovementAudDataset(torch.utils.data.Dataset):
 		return torch.Tensor(stdpSeq), torch.Tensor(aud)
 
 	def __len__(self):
-		return len(self.z3_data)+len(self.b3_data)+len(self.z4_data)+len(self.b4_data)+len(self.h3_data)+len(self.h4_data)
+		if self.cate == 'full':
+			return len(self.z3_data)+len(self.b3_data)+len(self.z4_data)+len(self.b4_data)+len(self.h3_data)+len(self.h4_data)
+		elif self.cate == 'zumba':
+			return len(self.z4_data) #+ len(self.z4_data)
+		elif self.cate == 'ballet':
+			return len(self.b4_data) #+ len(self.b4_data)
+		elif self.cate == 'hiphop':
+			return len(self.h4_data) #+ len(self.h4_data)
 
-def get_loader(batch_size, shuffle, num_workers, dataset, data_dir, tolerance=False):
+def get_loader(batch_size, shuffle, num_workers, dataset, data_dir, tolerance=False, eval='full'):
 	if dataset == 0:
 		a2d = PoseDataset(data_dir, tolerance)
 	elif dataset == 2:
-		a2d = MovementAudDataset(data_dir)
+		if eval == 'full':
+			a2d = MovementAudDataset(data_dir)
+		else:
+			a2d = MovementAudDataset(data_dir, category=eval)
+
 	data_loader = torch.utils.data.DataLoader(dataset=a2d,
 											batch_size=batch_size,
 											shuffle=shuffle,

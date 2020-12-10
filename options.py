@@ -14,6 +14,7 @@ class DecompOptions():
 		
 		# custom starts
 		parser.add_argument('--device', type=str, default="cuda:0")
+		parser.add_argument('--model', type=str, default='GRU')
 		# custom ends
 		parser.add_argument('--name', default=None)
 
@@ -59,7 +60,10 @@ class DecompOptions():
 class CompOptions():
 	def __init__(self):
 		parser = argparse.ArgumentParser()
-
+		# custom starts
+		parser.add_argument('--device', type=str, default="cuda:0")
+		parser.add_argument('--model', type=str, default='GRU')
+		# custom ends
 		parser.add_argument('--name', default=None)
 
 		parser.add_argument('--log_interval', type=int, default=50)
@@ -101,6 +105,8 @@ class CompOptions():
 		parser.add_argument('--neta_snapshot', default='./data/stats/aud_3cls.ckpt')
 		parser.add_argument('--resume', default=None)
 		parser.add_argument('--dataset', type=int, default=2)
+		parser.add_argument('--ablation', type=int, default=0)
+		
 		self.parser = parser
 
 	def parse(self):
@@ -111,7 +117,11 @@ class CompOptions():
 class TestOptions():
 	def __init__(self):
 		parser = argparse.ArgumentParser()
-
+		# custom starts
+		parser.add_argument('--device', type=str, default="cuda:0")
+		parser.add_argument('--model', type=str, default='GRU')
+		parser.add_argument('--ablation', type=int, default=3)
+		# custom ends
 		parser.add_argument('--name', default=None)
 
 		parser.add_argument('--log_interval', type=int, default=50)

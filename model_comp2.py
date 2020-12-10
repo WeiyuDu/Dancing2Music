@@ -39,7 +39,6 @@ class Trainer_Comp(object):
 		self.train = args.train
 		self.args = args
 
-		self.ablation = args.ablation
 		if args.train:
 			self.zdance_dis = zdance_dis
 			self.dance_reg = dance_reg
@@ -66,7 +65,6 @@ class Trainer_Comp(object):
 		self.mse_criterion = nn.MSELoss().to(self.args.device)#.cuda()
 
 		print('trainer initialized')
-		print(self.ablation)
 
 	def init_logs(self):
 		return {'l_kl_zdance':0, 'l_kl_zmovement':0, 'l_kl_fake_zdance':0, 'l_kl_fake_zmovement':0,
@@ -166,14 +164,7 @@ class Trainer_Comp(object):
 
 		self.loss_zdis_true = self.gan_criterion(real_labels, ones)
 		self.loss_zdis_fake = self.gan_criterion(fake_labels, zeros)
-		
-		if self.ablation == 2:
-			self.loss_dis = self.loss_dis
-		elif self.ablation == 1:
-			self.loss_dis = (self.loss_zdis_true + self.loss_zdis_fake)*self.args.lambda_gan
-		else:
-			self.loss_dis = self.loss_dis + (self.loss_zdis_true + self.loss_zdis_fake)*self.args.lambda_gan
-
+		self.loss_dis = self.loss_dis + (self.loss_zdis_true + self.loss_zdis_fake)*self.args.lambda_gan
 
 
 	def backward_danceED(self):
@@ -208,17 +199,13 @@ class Trainer_Comp(object):
 
 		self.loss = self.loss_kl_z_movement + self.loss_kl_z_dance + self.loss_l1_z_movement_mu + self.loss_l1_z_movement_logvar + self.loss_l1_stdpSeq + self.loss_gen
 
-
 	def backward_info_ondance(self):
 		real_pred = self.dance_reg(self.z_dance)
 		fake_pred = self.dance_reg(self.fake_z_dance)
 		self.loss_info_real = self.mse_criterion(real_pred, self.aud_style)
 		self.loss_info_fake = self.mse_criterion(fake_pred, self.aud_style)
 		self.loss_info = self.loss_info_real + self.loss_info_fake
-		if self.ablation == 3:
-			self.loss = self.loss
-		else:
-			self.loss += self.loss_info
+		self.loss += self.loss_info
 
 	def zero_grad(self, opt_list):
 		for opt in opt_list:
@@ -237,16 +224,8 @@ class Trainer_Comp(object):
 		self.zero_grad([self.opt_danceAud_dis, self.opt_zdance_dis])
 		self.backward_D()
 		self.loss_dis.backward(retain_graph=True)
-		if self.ablation == 1:
-			self.clip_norm([self.zdance_dis])
-			self.step([self.opt_zdance_dis])
-		elif self.ablation == 2:
-			self.clip_norm([self.danceAud_dis])
-			self.step([self.opt_danceAud_dis])
-		else:
-			self.clip_norm([self.danceAud_dis, self.zdance_dis])
-			self.step([self.opt_danceAud_dis, self.opt_zdance_dis])
-
+		self.clip_norm([self.danceAud_dis, self.zdance_dis])
+		self.step([self.opt_danceAud_dis, self.opt_zdance_dis])
 		'''
 		self.zero_grad([self.opt_dance_enc, self.opt_dance_dec, self.opt_audstyle_enc, self.opt_stdp_dec])
 		self.backward_danceED()
@@ -264,12 +243,8 @@ class Trainer_Comp(object):
 		self.backward_danceED()
 		self.backward_info_ondance()
 		self.loss.backward()
-		if self.ablation == 3:
-			self.clip_norm([self.dance_enc, self.dance_dec, self.audstyle_enc, self.stdp_dec, self.movement_enc])
-			self.step([self.opt_dance_enc, self.opt_dance_dec, self.opt_audstyle_enc, self.opt_stdp_dec, self.opt_movement_enc])
-		else:
-			self.clip_norm([self.dance_enc, self.dance_dec, self.audstyle_enc, self.stdp_dec, self.dance_reg, self.movement_enc])
-			self.step([self.opt_dance_enc, self.opt_dance_dec, self.opt_audstyle_enc, self.opt_stdp_dec, self.opt_dance_reg, self.opt_movement_enc])
+		self.clip_norm([self.dance_enc, self.dance_dec, self.audstyle_enc, self.stdp_dec, self.dance_reg, self.movement_enc])
+		self.step([self.opt_dance_enc, self.opt_dance_dec, self.opt_audstyle_enc, self.opt_stdp_dec, self.opt_dance_reg, self.opt_movement_enc])
 
 	def test_final(self, initpose, aud, n, thr=0):
 		self.cuda()
@@ -280,6 +255,8 @@ class Trainer_Comp(object):
 		self.dance_dec.eval()
 		self.aud_enc.eval()
 		self.audstyle_enc.eval()
+		curr_class = self.aud_enc(aud)
+		print("predicted class is", curr_class)
 		aud_style = self.aud_enc.get_style(aud).detach()
 
 		self.fake_z_dance_mu, self.fake_z_dance_logvar = self.audstyle_enc(aud_style)
@@ -445,8 +422,8 @@ class Trainer_Comp(object):
 						self.loss_l1_z_movement_mu, self.loss_l1_z_movement_logvar, self.loss_l1_stdpSeq, self.loss_kl_z_dance, self.loss_kl_z_movement) +
 						 '\t\t\tl_kl_f_dance {:.3f}\tl_dis {:.3f} {:.3f}\tl_gen {:.3f}'.format(self.loss_kl_fake_z_dance, self.loss_dis_true, self.loss_dis_fake, self.loss_gen))
 
-				# torch.cuda.synchronize()
-				# print('time elapsed: {} milliseconds'.format(start.elapsed_time(end)))
+				torch.cuda.synchronize()
+				print('time elapsed: {} milliseconds'.format(start.elapsed_time(end)))
 
 				it += 1
 				if it % self.log_interval == 0:
