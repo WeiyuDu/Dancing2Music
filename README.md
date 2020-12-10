@@ -7,3 +7,6 @@ Presentation: https://docs.google.com/presentation/d/11YTHrU7iGCIOVsd0SLnEJZcHaS
 
 ### Milestone 2
 Presentation: https://docs.google.com/presentation/d/1MyYJxO-48K1sjDSLLNfdr59GFTHjvSDZCJRkToGwey4/edit?usp=sharing
+
+### Milestone 3
+Presentation: https://docs.google.com/presentation/d/1OBWptq5f9bYVLz_lLq-whvNVv35XpLIs4e05uK2CO7g/edit?usp=sharing
