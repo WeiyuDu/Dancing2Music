@@ -20,9 +20,9 @@ class DecompOptions():
 
 		parser.add_argument('--log_interval', type=int, default=50)
 		parser.add_argument('--log_dir', default='./logs')
-		parser.add_argument('--snapshot_ep', type=int, default=1)
+		parser.add_argument('--snapshot_ep', type=int, default=10)
 		parser.add_argument('--snapshot_dir', default='./snapshot')
-		parser.add_argument('--data_dir', default='./data')
+		parser.add_argument('--data_dir', default='/home/weiyu/dance/Dancing2Music/data/')
 
 		# Model architecture
 		parser.add_argument('--pose_size', type=int, default=28)
@@ -49,6 +49,7 @@ class DecompOptions():
 		parser.add_argument('--resume', default=None)
 		parser.add_argument('--dataset', type=int, default=0)
 		parser.add_argument('--tolerance', action='store_true')
+		parser.add_argument('--category', default='full')
 
 		self.parser = parser
 
@@ -63,14 +64,19 @@ class CompOptions():
 		# custom starts
 		parser.add_argument('--device', type=str, default="cuda:0")
 		parser.add_argument('--model', type=str, default='GRU')
+		parser.add_argument('--num_cls', type=int, default=3)
+		parser.add_argument('--num_layers', type=int, default=2)
+		parser.add_argument('--output_size', type=int, default=30)
+		parser.add_argument('--hidden_size', type=int, default=512)
+		parser.add_argument('--dim_z_motion', type=int, default=10)
 		# custom ends
 		parser.add_argument('--name', default=None)
 
 		parser.add_argument('--log_interval', type=int, default=50)
 		parser.add_argument('--log_dir', default='./logs')
-		parser.add_argument('--snapshot_ep', type=int, default=1)
+		parser.add_argument('--snapshot_ep', type=int, default=10)
 		parser.add_argument('--snapshot_dir', default='./snapshot')
-		parser.add_argument('--data_dir', default='./data')
+		parser.add_argument('--data_dir', default='/home/weiyu/dance/Dancing2Music/data/')
 		# Network architecture
 		parser.add_argument('--pose_size', type=int, default=28)
 		parser.add_argument('--aud_style_size', type=int, default=30)
@@ -102,10 +108,12 @@ class CompOptions():
 		# Other
 		parser.add_argument('--num_workers', type=int,  default=4)
 		parser.add_argument('--decomp_snapshot', required=True)
-		parser.add_argument('--neta_snapshot', default='./data/stats/aud_3cls.ckpt')
+		#parser.add_argument('--neta_snapshot', default='/home/weiyu/dance/Dancing2Music/data/stats/aud_3cls.ckpt')
+		parser.add_argument('--neta_snapshot', default='snapshot/Style/0100.ckpt')
 		parser.add_argument('--resume', default=None)
 		parser.add_argument('--dataset', type=int, default=2)
 		parser.add_argument('--ablation', type=int, default=0)
+		parser.add_argument('--category', default='full')
 		
 		self.parser = parser
 
@@ -126,9 +134,9 @@ class TestOptions():
 
 		parser.add_argument('--log_interval', type=int, default=50)
 		parser.add_argument('--log_dir', default='./logs')
-		parser.add_argument('--snapshot_ep', type=int, default=1)
+		parser.add_argument('--snapshot_ep', type=int, default=10)
 		parser.add_argument('--snapshot_dir', default='./snapshot')
-		parser.add_argument('--data_dir', default='./data')
+		parser.add_argument('--data_dir', default='/home/weiyu/dance/Dancing2Music/data/')
 		# Network architecture
 		parser.add_argument('--pose_size', type=int, default=28)
 		parser.add_argument('--aud_style_size', type=int, default=30)

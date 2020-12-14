@@ -17,6 +17,7 @@ from model_comp import *
 from networks import *
 from options import CompOptions
 from data import get_loader
+import json
 
 def loadDecompModel(args):
 	initp_enc = InitPose_Enc(pose_size=args.pose_size, dim_z_init=args.dim_z_init)
@@ -46,8 +47,15 @@ def getCompNetworks(args):
 	zdance_dis = DanceAud_Dis2(aud_size=28, dim_z_movement=args.dim_z_dance, length=1)
 
 	checkpoint2 = torch.load(args.neta_snapshot)
-	neta_cls = AudioClassifier_rnn(10,30,28,cls=3)
-	neta_cls.load_state_dict(checkpoint2)
+	neta_cls = MusicStyleExtractor(args.dim_z_motion, 
+		hidden_size=args.hidden_size, 
+		output_size=args.output_size, 
+		pose_size=args.pose_size, 
+		cls=args.num_cls, 
+		num_layers=args.num_layers)
+	neta_cls.load_state_dict(checkpoint2['model'])
+	#neta_cls = AudioClassifier_rnn(10,30,28,cls=3)
+	#neta_cls.load_state_dict(checkpoint2)
 
 	return dance_enc, dance_dec, audstyle_enc, dance_reg, danceAud_dis, zdance_dis, neta_cls
 
@@ -70,7 +78,7 @@ if __name__ == "__main__":
 	option_path = os.path.join(args.log_dir, "options.txt")
 	with open(option_path, 'w') as f:
 		json.dump(args.__dict__, f, indent=2)
-		
+
 	data_loader = get_loader(batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, dataset=args.dataset, data_dir=args.data_dir)
 
 	#### Pretrain network from Decomp
