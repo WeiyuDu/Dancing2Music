@@ -49,7 +49,17 @@ We take Gaussian distributions on the initial pose:
 
 #### Training
 
+| ballet | hiphop |
+:------:|:------:
+![](imgs/ballet.gif) | ![](imgs/hiphop.gif)
+
 #### Inference result
+
+Generated dance using music in Sylvia - Act 3 solo piece
+
+![](imgs/dance_sylvaia.gif)
+
+For reference, here's a link to real person performance: https://www.youtube.com/watch?v=We7KAkWJow8
 
 ### Links to Presentations
 Milestone 1: https://docs.google.com/presentation/d/11YTHrU7iGCIOVsd0SLnEJZcHaSJD--XU_pph3FcJ-fk/edit?usp=sharing
