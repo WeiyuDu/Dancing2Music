@@ -14,6 +14,11 @@
 
 #### Evaluation on Impact of Initial Pose
 
+We take Gaussian distributions on the initial pose:
+| sample 1 | sample 2 | sample 3 | sample 4 |
+:------:|:------:|:------:|:------:
+![](imgs/ms3_sample1.gif) | ![](imgs/ms3_sample2.gif) | ![](imgs/ms3_sample3.gif) | ![](imgs/ms3_sample4.gif)
+
 #### Ablation Studies 
 
 * Alignment of latent dance codes 
