@@ -1,10 +1,18 @@
 ## Dancing to Music - CIS 565 Final Project
 ### Han Yan, Weiyu Du
 
+### Final Presentation
+1) Improves model architecture for the Music Style Extractor: First of all, the paper used a hidden size of 30 for RNN, which was too weak to us. Instead, we used hidden size of 512, then added another linear layer to map it to 30. Moreover, we added two dropout layers in the classifier to help regularize the network. We also found that in the data processing stage, the audio file was truncated to 30 data points. We extended this to 59, the length of the shortest audio file in the dataset so we would not require sequence padding.
+
+The paper did not provide details about how they trained the Music Style Extractor, so we built our own training pipeline. After 100 epochs, we found our accuracy to be **98.7%** ，which is a significant improvement from the original **73.5%** . We have reason to believe this will provides better music style feature, thus better dance generation quality.
+
+2) We also trained a new model only on Ballet dances to verify, if, aside from the confusion about types of music, the model can capture typical ballet movements. Please see our visual results in the final presentation.
+
 ### Milestone 3 - Model Drilldown
 
 #### Evaluation on Music Style Classification
   
+Overall accuracy: **73.5%**
 |  | Ballet | Zumba | Hiphop |
 | ------ | ------ | ----- | ------ |
 | Precision | 89.8% | 71.9% | 52.6% |
@@ -25,6 +33,9 @@ We take Gaussian distributions on the initial pose:
 * Alignment between music and dance style
 * Alignment of latent dance movements
 
+### Conclusion
+Music Style Extractor performs surprisingly poor on style classification task, which means 1) the model fails to understand what dance style it should generate 2) music feature is very poor. Combining with the lack of significant visual difference in the generation results of our ablation studies, we conclude music style understanding is the most evident bottleneck for our dancing to music task.
+
 ### Milestone 2 - Performance Analysis on CPU vs GPU with varying batch size
 
 #### Training time: forward and backward network pass
@@ -35,15 +46,15 @@ We take Gaussian distributions on the initial pose:
 
 #### Training time: data loading
 
-![](imgs/data_loading.png)
+<img src="imgs/data_loading.png" width=450>
 
 #### Inference time:
 
-![](imgs/inference.png)
+<img src="imgs/inference.png" width=450>
 
 #### Model architecture: LSTM vs. GRU
 
-![](imgs/model_arch.png)
+<img src="imgs/model_arch.png" width=450>
 
 ### Milestone 1 - Code Refinement, Model Training and Visualization
 
