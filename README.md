@@ -5,6 +5,13 @@
 
 #### Evaluation on Music Style Classification
   
+|  | Ballet | Zumba | Hiphop |
+| ------ | ------ | ----- | ------ |
+| Precision | 89.8% | 71.9% | 52.6% |
+| Predicted as Ballet | N/A | 4.8% | 36.8% |
+| Predicted as Zumba | 4.3% | N/A | 10.4% |
+| Predicted as Hiphop | 5.8% | 23.2% | N/A |
+
 #### Evaluation on Impact of Initial Pose
 
 #### Ablation Studies 
@@ -17,11 +24,21 @@
 
 #### Training time: forward and backward network pass
 
+| CPU training time           |  GPU training time |
+:-------------------------:|:-------------------------:
+![](imgs/cpu_train.png) | ![](imgs/gpu_train.png)
+
 #### Training time: data loading
+
+![](imgs/data_loading.png)
 
 #### Inference time:
 
+![](imgs/inference.png)
+
 #### Model architecture: LSTM vs. GRU
+
+![](imgs/model_arch.png)
 
 ### Milestone 1 - Code Refinement, Model Training and Visualization
 
