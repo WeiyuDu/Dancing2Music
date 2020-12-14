@@ -10,9 +10,13 @@ In this final project, we took on this challenging task and explored one state-o
 Based on the conclusion we had from last milestone's analysis,
 1) We improved model architecture for the Music Style Extractor: First of all, the paper used a hidden size of 30, 1 layer for RNN. We increased this to hidden size of 512, 2 layers to increase model capacity. To retain the dimension of the original latent space, we added another linear layer to map the channels from 512 to 30. Moreover, we added two dropout layers in the classifier to help regularize the network. We also modified the data processing pipeline to take advantage of longer audio signals.
 
-The paper did not provide details about how they trained the Music Style Extractor, so we built our own training pipeline. After 100 epochs, we found our accuracy to be **98.7%** ，which is a significant improvement from the original **73.5%** . We have reason to believe this will provides better music style feature, thus better dance generation quality.
+The paper did not provide details about how they trained the Music Style Extractor, so we built our own training pipeline. After 100 epochs, we found our accuracy to be **98.7%** ，which is a significant improvement from the original **73.5%** . We have reason to believe this provides better music style feature, thus better dance generation quality.
 
-2) We also trained a new model only on Ballet dances to verify, if, aside from the confusion about types of music, the model can capture typical ballet movements. Please see our visual results in the final presentation.
+2) We also trained a new model only on Ballet dances to verify, if, aside from the confusion about types of music, the model can capture typical ballet movements.
+
+| Improved Model          |  Original Model |
+:-------------------------:|:-------------------------:
+![](imgs/ballet_only.gif) | ![](imgs/ballet.gif)
 
 ### Milestone 3 - Model Drilldown
 
