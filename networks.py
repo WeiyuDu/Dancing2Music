@@ -433,6 +433,41 @@ class Dance2Style(nn.Module):
 ##########         Audio
 ##########
 ###########################################################
+class MusicStyleExtractor(nn.Module):
+	#10,30,28,cls=3
+	def __init__(self, dim_z_motion, hidden_size=512, output_size=30, pose_size=28, cls=3, num_layers=2):
+		super(MusicStyleExtractor, self).__init__()
+		self.dim_z_motion = dim_z_motion
+		self.hidden_size = hidden_size
+		self.pose_size = pose_size
+		self.num_layers = num_layers
+
+		self.init_h = nn.Parameter(torch.randn(1, 1, self.hidden_size).type(T.FloatTensor), requires_grad=True)
+		self.recurrent = nn.GRU(pose_size, hidden_size, num_layers=num_layers, batch_first=True)
+		self.output = nn.Linear(hidden_size, output_size)
+		self.classifier = nn.Sequential(
+			nn.ReLU(True),
+			nn.Dropout(0.1),
+			nn.Linear(output_size, output_size),
+			nn.ReLU(True),
+			nn.Dropout(0.1),
+			nn.Linear(output_size, cls)
+		)
+
+	def forward(self, poses):
+		hidden, _ = self.recurrent(poses, self.init_h.repeat(self.num_layers, poses.shape[0], 1))
+		#print('hidden', hidden.shape)
+		last_hidden = hidden[:,-1,:]
+		z = self.output(last_hidden)
+		cls = self.classifier(z)
+		return cls
+		
+	def get_style(self, auds):
+		hidden, _ = self.recurrent(auds, self.init_h.repeat(self.num_layers, auds.shape[0], 1))
+		last_hidden = hidden[:,-1,:]
+		z = self.output(last_hidden)
+		return z
+
 class AudioClassifier_rnn(nn.Module):
 	def __init__(self, dim_z_motion, hidden_size, pose_size, cls, num_layers=1, h_init=2, model='GRU'):
 		super(AudioClassifier_rnn, self).__init__()
@@ -466,6 +501,7 @@ class AudioClassifier_rnn(nn.Module):
 		last_hidden = hidden[:,-1,:]
 		cls = self.classifier(last_hidden)
 		return cls
+
 	def get_style(self, auds):
 		hidden, _ = self.recurrent(auds, self.init_h.repeat(1, auds.shape[0], 1))
 		last_hidden = hidden[:,-1,:]

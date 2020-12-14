@@ -1,6 +1,11 @@
 ## Dancing to Music - CIS 565 Final Project
 ### Han Yan, Weiyu Du
 
+### Introduction
+Dancing to a piece of music is an instinct move by humans. However, learning to model the music-to-dance generation process is quite a challenging task for machine learning models. First of all, many factors need to be taken into consideration in the music-dance correlation; Secondly, dance is multimodal -- we could have several dances that are equally beautiful mapped to one piece of music. 
+
+In this final project, we took on this challenging task and explored one state-of-the-art work on this topic: the Dancing to Music paper by Lee et al., published at Neurips 2019. In training and testing our models, we found the method did not perform as well as we had been led to believe. We analyzed its performance both in terms of time efficency and in terms of effectiveness of each individual module and loss. Based on the conclusion we derived, we proposed a few modifications to the method and showed some improvements in visual results.
+
 ### Final Presentation
 Based on the conclusion we had from last milestone's analysis,
 1) We improved model architecture for the Music Style Extractor: First of all, the paper used a hidden size of 30, 1 layer for RNN. We increased this to hidden size of 512, 2 layers to increase model capacity. To retain the dimension of the original latent space, we added another linear layer to map the channels from 512 to 30. Moreover, we added two dropout layers in the classifier to help regularize the network. We also modified the data processing pipeline to take advantage of longer audio signals.
@@ -33,6 +38,10 @@ We take Gaussian distributions on the initial pose:
 * Alignment of latent dance codes 
 * Alignment between music and dance style
 * Alignment of latent dance movements
+
+| Model without style regressor           |  Full Model |
+:-------------------------:|:-------------------------:
+![](imgs/sylvia_ab_style.gif) | ![](imgs/sylvia_orig.gif)
 
 ### Conclusion
 Music Style Extractor performs surprisingly poor on style classification task, which means 1) the model fails to understand what dance style it should generate 2) music feature is very poor. Combining with the lack of significant visual difference in the generation results of our ablation studies, we conclude music style understanding is the most evident bottleneck for our dancing to music task.

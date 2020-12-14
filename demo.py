@@ -128,41 +128,27 @@ if __name__ == "__main__":
 	final_stdpSeq = np.zeros((total_t*3*32, 14, 2))
 	initpose, aud = torch.Tensor(initpose).to(args.device), torch.Tensor(aud).to(args.device)
 	initpose, aud = initpose.view(1, initpose.shape[0]), aud.view(1, aud.shape[0], aud.shape[1])
-	start = torch.cuda.Event(enable_timing=True)
-	end = torch.cuda.Event(enable_timing=True)
-	start.record()
+	#start = torch.cuda.Event(enable_timing=True)
+	#end = torch.cuda.Event(enable_timing=True)
+	#start.record()
 	for t in range(total_t):
 		print('process {}/{}'.format(t, total_t))
 		fake_stdpSeq = trainer.test_final(initpose, aud, 3, thr)
 		while True:
 			fake_stdpSeq = trainer.test_final(initpose, aud, 3, thr)
 			if not fake_stdpSeq is None:
-<<<<<<< HEAD
 				break
 		initpose = fake_stdpSeq[2,-1]
 		initpose = torch.Tensor(initpose).to(args.device)
-=======
-			break
-		initpose = fake_stdpSeq[2,-1]
-		initpose = torch.Tensor(initpose).cuda()
->>>>>>> 0a0fac5fcbee0085c4a12f7f87754c143d21592a
 		initpose = initpose.view(1,-1)
 		fake_stdpSeq = fake_stdpSeq.squeeze()
 		for j in range(fake_stdpSeq.shape[0]):
 			for k in range(fake_stdpSeq.shape[1]):
-<<<<<<< HEAD
 				fake_stdpSeq[j,k] = fake_stdpSeq[j,k]*std_pose + mean_pose
 		fake_stdpSeq = np.resize(fake_stdpSeq, (fake_stdpSeq.shape[0],32, 14, 2))
 		for j in range(3):
 			final_stdpSeq[96*t+32*j:96*t+32*(j+1)] = fake_stdpSeq[j]
-	end.record()
-=======
-			fake_stdpSeq[j,k] = fake_stdpSeq[j,k]*std_pose + mean_pose
-		fake_stdpSeq = np.resize(fake_stdpSeq, (fake_stdpSeq.shape[0],32, 14, 2))
-		for j in range(3):
-			final_stdpSeq[96*t+32*j:96*t+32*(j+1)] = fake_stdpSeq[j]
-
->>>>>>> 0a0fac5fcbee0085c4a12f7f87754c143d21592a
+	#end.record()
 	if args.modulate:
 		final_stdpSeq = modulate.modulate(final_stdpSeq, beats, length)
 
@@ -172,5 +158,5 @@ if __name__ == "__main__":
 	utils.vis(final_stdpSeq, out_dir)
 	sp.call('ffmpeg -r 15  -i {}/frame%03d.png -i {} -c:v libx264 -pix_fmt yuv420p  -crf 23 -r 30  -y -strict -2  {}'.format(out_dir, args.aud_path, args.out_file), shell=True)
 	
-	torch.cuda.synchronize()
-	print('time elapsed: {} milliseconds'.format(start.elapsed_time(end)))
+	#torch.cuda.synchronize()
+	#print('time elapsed: {} milliseconds'.format(start.elapsed_time(end)))
