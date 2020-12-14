@@ -4,7 +4,7 @@
 ### Introduction
 Dancing to a piece of music is an instinct move by humans. However, learning to model the music-to-dance generation process is quite a challenging task for machine learning models. First of all, many factors need to be taken into consideration in the music-dance correlation; Secondly, dance is multimodal -- we could have several dances that are equally beautiful mapped to one piece of music. 
 
-In this final project, we took on this challenging task and explored one of the state-of-the-art works on this topic: Dancing to Music by Lee et al., published at Neurips 2019. In training and testing our models, we found the method did not perform as well as we had been led to believe. We analyzed its performance both in terms of time efficency and in terms of effectiveness of each individual module and loss. Based on the conclusion we derived, we proposed a few modifications to the method and showed some improvements in visual results.
+In this final project, we took on this challenging task and explored one state-of-the-art work on this topic: the Dancing to Music paper by Lee et al., published at Neurips 2019. In training and testing our models, we found the method did not perform as well as we had been led to believe. We analyzed its performance both in terms of time efficency and in terms of effectiveness of each individual module and loss. Based on the conclusion we derived, we proposed a few modifications to the method and showed some improvements in visual results.
 
 ### Final Presentation
 Based on the conclusion we had from last milestone's analysis,
