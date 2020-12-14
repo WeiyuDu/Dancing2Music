@@ -17,6 +17,7 @@ from model_comp import *
 from networks import *
 from options import CompOptions
 from data import get_loader
+import json
 
 def loadDecompModel(args):
 	initp_enc = InitPose_Enc(pose_size=args.pose_size, dim_z_init=args.dim_z_init)
@@ -70,7 +71,7 @@ if __name__ == "__main__":
 	option_path = os.path.join(args.log_dir, "options.txt")
 	with open(option_path, 'w') as f:
 		json.dump(args.__dict__, f, indent=2)
-		
+
 	data_loader = get_loader(batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, dataset=args.dataset, data_dir=args.data_dir)
 
 	#### Pretrain network from Decomp

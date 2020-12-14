@@ -17,6 +17,7 @@ from model_decomp import *
 from networks import *
 from options import DecompOptions
 from data import get_loader
+import json
 
 def getDecompNetworks(args):
 	initp_enc = InitPose_Enc(pose_size=args.pose_size, dim_z_init=args.dim_z_init)

@@ -108,8 +108,8 @@ class CompOptions():
 		# Other
 		parser.add_argument('--num_workers', type=int,  default=4)
 		parser.add_argument('--decomp_snapshot', required=True)
-		#parser.add_argument('--neta_snapshot', default='/home/weiyu/dance/Dancing2Music/data/stats/aud_3cls.ckpt')
-		parser.add_argument('--neta_snapshot', default='snapshot/Style/0100.ckpt')
+		parser.add_argument('--neta_snapshot', default='/home/weiyu/dance/Dancing2Music/data/stats/aud_3cls.ckpt')
+		#parser.add_argument('--neta_snapshot', default='snapshot/Style/0100.ckpt')
 		parser.add_argument('--resume', default=None)
 		parser.add_argument('--dataset', type=int, default=2)
 		parser.add_argument('--ablation', type=int, default=0)
