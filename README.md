@@ -34,6 +34,10 @@ We take Gaussian distributions on the initial pose:
 * Alignment between music and dance style
 * Alignment of latent dance movements
 
+| Model without style regressor           |  Full Model |
+:-------------------------:|:-------------------------:
+![](imgs/sylvia_ab_style.gif) | ![](imgs/sylvia_orig.gif)
+
 ### Conclusion
 Music Style Extractor performs surprisingly poor on style classification task, which means 1) the model fails to understand what dance style it should generate 2) music feature is very poor. Combining with the lack of significant visual difference in the generation results of our ablation studies, we conclude music style understanding is the most evident bottleneck for our dancing to music task.
 
