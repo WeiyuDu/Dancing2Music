@@ -2,7 +2,8 @@
 ### Han Yan, Weiyu Du
 
 ### Final Presentation
-1) Improved model architecture for the Music Style Extractor: First of all, the paper used a hidden size of 30 for RNN, which was too weak to us. Instead, we used hidden size of 512, then added another linear layer to map it to 30. Moreover, we added two dropout layers in the classifier to help regularize the network. We also found that in the data processing stage, the audio file was truncated to 30 data points. We extended this to 59, the length of the shortest audio file in the dataset so we would not require sequence padding.
+Based on the conclusion we had from last milestone's analysis,
+1) We improved model architecture for the Music Style Extractor: First of all, the paper used a hidden size of 30, 1 layer for RNN. We increased this to hidden size of 512, 2 layers to increase model capacity. To retain the dimension of the original latent space, we added another linear layer to map the channels from 512 to 30. Moreover, we added two dropout layers in the classifier to help regularize the network. We also modified the data processing pipeline to take advantage of longer audio signals.
 
 The paper did not provide details about how they trained the Music Style Extractor, so we built our own training pipeline. After 100 epochs, we found our accuracy to be **98.7%** ，which is a significant improvement from the original **73.5%** . We have reason to believe this will provides better music style feature, thus better dance generation quality.
 
@@ -73,6 +74,6 @@ Generated dance using music in Sylvia - Act 3 solo piece
 For reference, here's a link to real person performance: https://www.youtube.com/watch?v=We7KAkWJow8
 
 ### Links to Presentations
-Milestone 1: https://docs.google.com/presentation/d/11YTHrU7iGCIOVsd0SLnEJZcHaSJD--XU_pph3FcJ-fk/edit?usp=sharing
-Milestone 2: https://docs.google.com/presentation/d/1MyYJxO-48K1sjDSLLNfdr59GFTHjvSDZCJRkToGwey4/edit?usp=sharing
-Milestone 3: https://docs.google.com/presentation/d/1OBWptq5f9bYVLz_lLq-whvNVv35XpLIs4e05uK2CO7g/edit?usp=sharing
+<br>Milestone 1: https://docs.google.com/presentation/d/11YTHrU7iGCIOVsd0SLnEJZcHaSJD--XU_pph3FcJ-fk/edit?usp=sharing</br>
+<br>Milestone 2: https://docs.google.com/presentation/d/1MyYJxO-48K1sjDSLLNfdr59GFTHjvSDZCJRkToGwey4/edit?usp=sharing</br>
+<br>Milestone 3: https://docs.google.com/presentation/d/1OBWptq5f9bYVLz_lLq-whvNVv35XpLIs4e05uK2CO7g/edit?usp=sharing</br>
